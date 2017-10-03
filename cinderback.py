@@ -137,6 +137,9 @@ def get_arg_parser():
                         default=os.environ.get('OS_AUTH_URL', ''),
                         help='URL for the authentication service. '
                              'Default=env[OS_AUTH_URL]')
+    parser.add_argument('--insecure', dest='insecure',
+                        default=False, action='store_true',
+                        help='Insecure SSL certificate')
     parser.add_argument('-q', '--quiet', dest='quiet',
                         default=False, action='store_true',
                         help='No output except warnings or errors')
@@ -325,7 +328,7 @@ class BackupService(object):
 
     def __init__(self, username, api_key, project_id, auth_url,
                  poll_delay=None, name_prefix='auto_backup_',
-                 max_secs_gbi=None):
+                 max_secs_gbi=None, insecure=False):
         super(BackupService, self).__init__()
         self.username = username
         self.api_key = api_key
@@ -333,13 +336,15 @@ class BackupService(object):
         self.auth_url = auth_url
         self.poll_delay = poll_delay or self.default_poll_deplay
         self.name_prefix = name_prefix
+        self.insecure = insecure
 
         # Some functionality requires API version 2
         self.client = client.Client(version=2,
                                     username=username,
                                     api_key=api_key,
                                     project_id=project_id,
-                                    auth_url=auth_url)
+                                    auth_url=auth_url,
+                                    insecure=self.insecure)
 
         self.status_msg = ''
         self.max_secs_gbi = max_secs_gbi or 300
@@ -789,7 +794,8 @@ class BackupService(object):
                              username=self.username,
                              api_key=self.api_key,
                              tenant_id=tenant_id,
-                             auth_url=self.auth_url)
+                             auth_url=self.auth_url,
+                             insecure=self.insecure)
 
     def import_metadata(self, filename):
         """Import backup metadata to DB from file."""
@@ -840,6 +846,7 @@ def main(args):
                            api_key=args.password,
                            project_id=args.tenant_name,
                            auth_url=args.auth_url,
+                           insecure=args.insecure,
                            max_secs_gbi=getattr(args, 'max_secs_gbi', None))
 
     if not backup.is_up:
