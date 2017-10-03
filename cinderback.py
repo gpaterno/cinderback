@@ -785,7 +785,7 @@ class BackupService(object):
         """Return a client for requested tenant"""
         # If we are the original tenant of the volume
         if (not keep_tenant or
-                self.client.client.auth_ref['token']['tenant']['id']
+                self.client.client.auth_ref._data['token']['project']['id']
                 == tenant_id):
             return self.client
 
